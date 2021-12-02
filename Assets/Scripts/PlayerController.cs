@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using UnityEngine.SceneManagement;
 public class PlayerController : MonoBehaviour
 
 {
@@ -24,12 +25,15 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float hurtforce = 10f;
     [SerializeField] private AudioSource cherry;
     [SerializeField] private AudioSource footstep;
+    [SerializeField] private int health;
+    [SerializeField] private TextMeshProUGUI healthamount;
 
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         coll = GetComponent<Collider2D>();
+        healthamount.text = health.ToString();
     }
 
     private void Update()
@@ -55,7 +59,7 @@ public class PlayerController : MonoBehaviour
         if(collision.tag == "PowerUp")
         {
             Destroy(collision.gameObject);
-            jumpforce = 15f;
+            jumpforce = 13f;
             GetComponent<SpriteRenderer>().color = Color.yellow;
             StartCoroutine(ResetPower());
         }
@@ -75,7 +79,9 @@ public class PlayerController : MonoBehaviour
             else
             {
                 state = State.hurt;
-                if(other.gameObject.transform.position.x > transform.position.x)
+                HandleHealth(); // updates health and returns the player after life is zero
+
+                if (other.gameObject.transform.position.x > transform.position.x)
                 {
                     //Enemy is to my right therefore I should be damaged and move left
                     rb.velocity = new Vector2(-hurtforce, rb.velocity.y);
@@ -86,9 +92,20 @@ public class PlayerController : MonoBehaviour
                     rb.velocity = new Vector2(hurtforce, rb.velocity.y);
                 }
             }
-            
+
         }
     }
+
+    private void HandleHealth()
+    {
+        health -= 1;
+        healthamount.text = health.ToString();
+        if (health <= 0)
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+    }
+
     private void Movement()
     {
         float hDirection = Input.GetAxis("Horizontal");
